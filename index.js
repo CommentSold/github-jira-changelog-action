@@ -6,6 +6,7 @@ const ejs = require('ejs');
 const Haikunator = require('haikunator');
 const { SourceControl, Jira } = require('jira-changelog');
 const RegExpFromString = require('regexp-from-string');
+const resolve = require('path').resolve;
 
 const config = {
   jira: {
@@ -216,6 +217,10 @@ async function main() {
     // Get commits for a range
     const source = new SourceControl(config);
     const jira = new Jira(config);
+
+    const path = resolve('./');
+    console.log("Test path")
+    console.log(path);
 
     const range = config.sourceControl.defaultRange;
     console.log(`Getting range ${range.from}..${range.to} commit logs`);
