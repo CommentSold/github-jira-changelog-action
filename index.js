@@ -10,21 +10,21 @@ const RegExpFromString = require('regexp-from-string');
 const config = {
   jira: {
     api: {
-      host: "commentsold.atlassian.net", //core.getInput('jira_host'),
-      email: "adam.griffis@commentsold.com", //core.getInput('jira_email'),
-      token: "jGhaiyeo1zh4LqcdzOB8BCCD" //core.getInput('jira_token'),
+      host: core.getInput('jira_host'),
+      email: core.getInput('jira_email'),
+      token: core.getInput('jira_token'),
     },
-    baseUrl: "https://commentsold.atlassian.net/", //core.getInput('jira_base_url'),
-    ticketIDPattern: /\[(.+\-[0-9]+)\]/, //RegExpFromString(core.getInput('jira_ticket_id_pattern')),
+    baseUrl: core.getInput('jira_base_url'),
+    ticketIDPattern: RegExpFromString(core.getInput('jira_ticket_id_pattern')),
     approvalStatus: ['Current Release Candidate', 'Ready to Deploy'],
     excludeIssueTypes: ['Sub-task'],
     includeIssueTypes: [],
-    releaseVersion: "2021-07-20", // core.getInput('release_version'),
+    releaseVersion: core.getInput('release_version'),
   },
   sourceControl: {
     defaultRange: {
-      to: "release/2021-07-20",
-      from: "master",
+      to: core.getInput("source_control_range_to"),
+      from: core.getInput("source_control_range_from"),
       symmetric: false // if we don't make it non-symmetric, then we'll get changes in master that aren't in the release branch
     }
   },
