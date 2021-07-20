@@ -19,7 +19,7 @@ inputs:
         required: false
     jira_ticket_id_pattern:
         description: 'Regex used to match the issue ticket key'
-        default: /\[([.]+\-[0-9]+)\]/i
+        default: /\[(.+\-[0-9]+)\]/i
         required: false
     source_control_range_from:
         description: 'Starting branch to get range of commits'
