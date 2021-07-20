@@ -219,8 +219,8 @@ async function main() {
 
     const range = config.sourceControl.defaultRange;
     console.log(`Getting range ${range.from}..${range.to} commit logs`);
-    const commitLogs = await source.getCommitLogs('../CommentSold/', range);
-    //console.log(commitLogs);
+    const commitLogs = await source.getCommitLogs('./', range);
+    console.log(commitLogs);
 
     console.log('Generating release version');
     const release = config.jira.releaseVersion; //'test-release-adam';
@@ -229,7 +229,7 @@ async function main() {
     console.log('Generating Jira changelog from commit logs');
     const changelog = await jira.generate(commitLogs, release);
     console.log('Changelog entry:');
-    //console.log(changelog);
+    console.log(changelog);
 
     console.log('Generating changelog message');
     const data = await transformCommitLogs(config, changelog);
