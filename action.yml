@@ -23,15 +23,20 @@ inputs:
         required: false
     source_control_range_from:
         description: 'Starting branch to get range of commits'
-        default: 'develop'
+        default: 'master'
         required: false
     source_control_range_to:
         description: 'Ending branch to get range of commits'
-        default: 'master'
+        required: true
+    release_version:
+        description: 'Release version to generate in Jira'
+        default: ''
         required: false
 outputs:
     changelog_message:
         description: 'Generated changelog entry'
+    qanotes_message:
+        description: 'Generated QA Notes'
 runs:
     using: 'node12'
     main: 'index.js'

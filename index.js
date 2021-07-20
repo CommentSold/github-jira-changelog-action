@@ -10,20 +10,22 @@ const RegExpFromString = require('regexp-from-string');
 const config = {
   jira: {
     api: {
-      host: core.getInput('jira_host'),
-      email: core.getInput('jira_email'),
-      token: core.getInput('jira_token'),
+      host: "commentsold.atlassian.net", //core.getInput('jira_host'),
+      email: "adam.griffis@commentsold.com", //core.getInput('jira_email'),
+      token: "jGhaiyeo1zh4LqcdzOB8BCCD" //core.getInput('jira_token'),
     },
-    baseUrl: core.getInput('jira_base_url'),
-    ticketIDPattern: RegExpFromString(core.getInput('jira_ticket_id_pattern')),
-    approvalStatus: ['Done', 'Closed', 'Accepted'],
+    baseUrl: "https://commentsold.atlassian.net/", //core.getInput('jira_base_url'),
+    ticketIDPattern: /\[(.+\-[0-9]+)\]/, //RegExpFromString(core.getInput('jira_ticket_id_pattern')),
+    approvalStatus: ['Current Release Candidate', 'Ready to Deploy'],
     excludeIssueTypes: ['Sub-task'],
     includeIssueTypes: [],
+    releaseVersion: "2021-07-20", // core.getInput('release_version'),
   },
   sourceControl: {
     defaultRange: {
-      from:  core.getInput('source_control_range_from'),
-      to: core.getInput('source_control_range_to')
+      to: "release/2021-07-20",
+      from: "master",
+      symmetric: false // if we don't make it non-symmetric, then we'll get changes in master that aren't in the release branch
     }
   },
 };
@@ -38,19 +40,23 @@ Release version: <%= jira.releaseVersions[0].name -%>
 <% }); -%>
 <% } %>
 
-Jira Tickets
+RT Jira Tickets Summary
 ---------------------
-<% tickets.all.forEach((ticket) => { %>
-  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
+<% tickets.all.forEach((ticket, index) => { %>
+  *<%= index+1 %>. Dev Card: [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>)*
+
+  **<%= ticket.fields.summary %>**
+
+  Description: <%= ticket.fields.customfield_10047 %>
 <% }); -%>
 <% if (!tickets.all.length) {%> ~ None ~ <% } %>
 
-Other Commits
+The following Tier 2 Tickets are in the RT but are missing values for "RT State"
 ---------------------
-<% commits.noTickets.forEach((commit) => { %>
-  * <%= commit.slackUser ? '@'+commit.slackUser.name : commit.authorName %> - [<%= commit.revision.substr(0, 7) %>] - <%= commit.summary -%>
+<% tickets.noRT.forEach((ticket) => { %>
+  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
 <% }); -%>
-<% if (!commits.noTickets.length) {%> ~ None ~ <% } %>
+<% if (!tickets.noRT.length) {%> ~ None ~ <% } %>
 
 Pending Approval
 ---------------------
@@ -61,7 +67,88 @@ Pending Approval
 <% }); -%>
 <% }); -%>
 <% if (!tickets.pendingByOwner.length) {%> ~ None. Yay! ~ <% } %>
+
+
+QA Tickets Summary
+---------------------
+
+<% tickets.noRT.forEach((ticket) => { %>
+  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
+
+  ** QA Notes: <%=ticket.fields.customfield_10079 %>
+<% }); -%>
+<% if (!tickets.noRT.length) {%> ~ None ~ <% } %>
+
+
+Other Commits
+---------------------
+<% commits.noTickets.forEach((commit) => { %>
+  * <%= commit.slackUser ? '@'+commit.slackUser.name : commit.authorName %> - [<%= commit.revision.substr(0, 7) %>] - <%= commit.summary -%>
+<% }); -%>
+<% if (!commits.noTickets.length) {%> ~ None ~ <% } %>
 `;
+
+
+const qaTemplate = `
+<% if (jira.releaseVersions && jira.releaseVersions.length) {  %>
+Release version: <%= jira.releaseVersions[0].name -%>
+<% jira.releaseVersions.forEach((release) => { %>
+  * <%= release.projectKey %>: <%= jira.baseUrl + '/projects/' + release.projectKey + '/versions/' + release.id -%>
+<% }); -%>
+<% } %>
+
+QA Tickets Summary
+---------------------
+
+<% tickets.noRT.forEach((ticket) => { %>
+  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
+
+  ** QA Notes: <%=ticket.fields.customfield_10079 %>
+<% }); -%>
+<% if (!tickets.noRT.length) {%> ~ None ~ <% } %>
+
+Pending Approval
+---------------------
+<% tickets.pendingByOwner.forEach((owner) => { %>
+<%= (owner.slackUser) ? '@'+owner.slackUser.name : owner.email %>
+<% owner.tickets.forEach((ticket) => { -%>
+  * <%= jira.baseUrl + '/browse/' + ticket.key %>
+<% }); -%>
+<% }); -%>
+<% if (!tickets.pendingByOwner.length) {%> ~ None. Yay! ~ <% } %>
+
+Other Commits
+---------------------
+<% commits.noTickets.forEach((commit) => { %>
+  * <%= commit.slackUser ? '@'+commit.slackUser.name : commit.authorName %> - [<%= commit.revision.substr(0, 7) %>] - <%= commit.summary -%>
+<% }); -%>
+<% if (!commits.noTickets.length) {%> ~ None ~ <% } %>
+`;
+
+// identify TIER 2 tickets that don't have a value for "RT State"
+function nonRTInformation(ticket) {
+  if(ticket.fields.project.key === "TIER2") {
+    let stateFieldValue = ticket.fields.customfield_10048 || [];
+
+    if (stateFieldValue.length <= 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function shouldExcludeTicketFromList(ticket) { 
+  if(ticket.fields.project.key === "TIER2") {
+    let stateFieldValue = ticket.fields.customfield_10048 || [];
+
+    if (stateFieldValue.length == 1) {
+      return stateFieldValue[0].value == 'No RT'
+    }
+  }
+
+  return false;
+}
 
 function generateReleaseVersionName() {
   const hasVersion = process.env.VERSION;
@@ -131,19 +218,18 @@ async function main() {
     const jira = new Jira(config);
 
     const range = config.sourceControl.defaultRange;
-    console.log(`Getting range ${range.from}...${range.to} commit logs`);
-    const commitLogs = await source.getCommitLogs('./', range);
-    console.log('Found following commit logs:');
-    console.log(commitLogs);
+    console.log(`Getting range ${range.from}..${range.to} commit logs`);
+    const commitLogs = await source.getCommitLogs('../CommentSold/', range);
+    //console.log(commitLogs);
 
     console.log('Generating release version');
-    const release = generateReleaseVersionName();
+    const release = config.jira.releaseVersion; //'test-release-adam';
     console.log(`Release: ${release}`);
 
     console.log('Generating Jira changelog from commit logs');
     const changelog = await jira.generate(commitLogs, release);
     console.log('Changelog entry:');
-    console.log(changelog);
+    //console.log(changelog);
 
     console.log('Generating changelog message');
     const data = await transformCommitLogs(config, changelog);
@@ -153,13 +239,29 @@ async function main() {
       releaseVersions: jira.releaseVersions,
     };
 
+    data.tickets.noRT = data.tickets.all.filter((ticket) => {
+      return nonRTInformation(ticket);
+    });
+
+    data.tickets.all = data.tickets.all.filter((ticket) => {
+      return !shouldExcludeTicketFromList(ticket);
+    });
+
     const entitles = new Entities.AllHtmlEntities();
     const changelogMessage = ejs.render(template, data);
+    const qaLogMessage = ejs.render(qaTemplate, data);
 
     console.log('Changelog message entry:');
     console.log(entitles.decode(changelogMessage));
 
+    console.log('QA log message entry:');
+    console.log(entitles.decode(qaLogMessage));
+
+    // console.log('Jira tickets: ');
+    // console.log(data.tickets.all);
+
     core.setOutput('changelog_message', changelogMessage);
+    core.setOutput('qanotes_message', qaLogMessage);
 
   } catch (error) {
     core.setFailed(error.message);
