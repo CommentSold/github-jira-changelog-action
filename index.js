@@ -101,12 +101,12 @@ Release version: <%= jira.releaseVersions[0].name -%>
 QA Tickets Summary
 ---------------------
 
-<% tickets.noRT.forEach((ticket) => { %>
+<% tickets.all.forEach((ticket) => { %>
   * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
 
   ** QA Notes: <%=ticket.fields.customfield_10079 %>
 <% }); -%>
-<% if (!tickets.noRT.length) {%> ~ None ~ <% } %>
+<% if (!tickets.all.length) {%> ~ None ~ <% } %>
 
 Pending Approval
 ---------------------
