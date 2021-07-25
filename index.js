@@ -70,17 +70,6 @@ Pending Approval
 <% if (!tickets.pendingByOwner.length) {%> ~ None. Yay! ~ <% } %>
 
 
-QA Tickets Summary
----------------------
-
-<% tickets.noRT.forEach((ticket) => { %>
-  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
-
-  ** QA Notes: <%=ticket.fields.customfield_10079 %>
-<% }); -%>
-<% if (!tickets.noRT.length) {%> ~ None ~ <% } %>
-
-
 Other Commits
 ---------------------
 <% commits.noTickets.forEach((commit) => { %>
@@ -102,9 +91,7 @@ QA Tickets Summary
 ---------------------
 
 <% tickets.all.forEach((ticket) => { %>
-  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
-
-  ** QA Notes: <%=ticket.fields.customfield_10079 %>
+  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>\n** QA Notes: <%=ticket.fields.customfield_10079 %>
 <% }); -%>
 <% if (!tickets.all.length) {%> ~ None ~ <% } %>
 
