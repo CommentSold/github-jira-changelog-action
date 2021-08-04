@@ -10,24 +10,26 @@ const resolve = require('path').resolve;
 
 const config = {
   jira: {
-    api: {
+    api: {      
       host: core.getInput('jira_host'),
       email: core.getInput('jira_email'),
       token: core.getInput('jira_token'),
-    },
-    baseUrl: core.getInput('jira_base_url'),
-    ticketIDPattern: RegExpFromString(core.getInput('jira_ticket_id_pattern')),
-    approvalStatus: ['Current Release Candidate', 'Ready to Deploy'],
-    excludeIssueTypes: ['Sub-task'],
-    includeIssueTypes: [],
-    releaseVersion: core.getInput('release_version'),
   },
-  sourceControl: {
-    defaultRange: {
+  baseUrl: core.getInput('jira_base_url'),
+  ticketIDPattern: RegExpFromString(core.getInput('jira_ticket_id_pattern')),
+  approvalStatus: ['Current Release Candidate', 'Ready to Deploy'],
+  excludeIssueTypes: ['Sub-task'],
+  includeIssueTypes: [],
+  releaseVersion: core.getInput('release_version'),
+},
+sourceControl: {
+  defaultRange: {
       to: core.getInput("source_control_range_to"),
       from: core.getInput("source_control_range_from"),
       symmetric: false // if we don't make it non-symmetric, then we'll get changes in master that aren't in the release branch
-    }
+    },
+    gitHubToken: core.getInput("github_token"),
+    repoName: core.getInput('repo_name')
   },
 };
 
@@ -91,7 +93,7 @@ QA Tickets Summary
 ---------------------
 
 <% tickets.all.forEach((ticket) => { %>
-  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
+  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>\n
   ** QA Notes: <%=ticket.fields.customfield_10079 %>
 <% }); -%>
 <% if (!tickets.all.length) {%> ~ None ~ <% } %>
@@ -206,17 +208,17 @@ async function main() {
     const source = new SourceControl(config);
     const jira = new Jira(config);
 
-    const path = resolve('./');
+    const path = resolve('../CommentSold');
     console.log("Test path")
     console.log(path);
 
     const range = config.sourceControl.defaultRange;
     console.log(`Getting range ${range.from}..${range.to} commit logs`);
-    const commitLogs = await source.getCommitLogs('./', range);
+    const commitLogs = await source.getCommitLogs('../CommentSold', range, config.sourceControl.gitHubToken, config.sourceControl.repoName);
     console.log(commitLogs);
 
     console.log('Generating release version');
-    const release = config.jira.releaseVersion; //'test-release-adam';
+    const release = null;
     console.log(`Release: ${release}`);
 
     console.log('Generating Jira changelog from commit logs');
