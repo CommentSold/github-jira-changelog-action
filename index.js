@@ -208,13 +208,13 @@ async function main() {
     const source = new SourceControl(config);
     const jira = new Jira(config);
 
-    const path = resolve('../CommentSold');
+    const path = resolve('./');
     console.log("Test path")
     console.log(path);
 
     const range = config.sourceControl.defaultRange;
     console.log(`Getting range ${range.from}..${range.to} commit logs`);
-    const commitLogs = await source.getCommitLogs('../CommentSold', range, config.sourceControl.gitHubToken, config.sourceControl.repoName);
+    const commitLogs = await source.getCommitLogs('./', range, config.sourceControl.gitHubToken, config.sourceControl.repoName);
     console.log(commitLogs);
 
     console.log('Generating release version');
