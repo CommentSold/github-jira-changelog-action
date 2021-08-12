@@ -10,7 +10,7 @@ const resolve = require('path').resolve;
 
 const config = {
   jira: {
-    api: {      
+    api: {            
       host: core.getInput('jira_host'),
       email: core.getInput('jira_email'),
       token: core.getInput('jira_token'),
@@ -27,7 +27,7 @@ sourceControl: {
       to: core.getInput("source_control_range_to"),
       from: core.getInput("source_control_range_from"),
       symmetric: false // if we don't make it non-symmetric, then we'll get changes in master that aren't in the release branch
-    },
+    },    
     gitHubToken: core.getInput("github_token"),
     repoName: core.getInput('repo_name')
   },
@@ -66,7 +66,7 @@ Pending Approval
 <% tickets.pendingByOwner.forEach((owner) => { %>
 <%= (owner.slackUser) ? '@'+owner.slackUser.name : owner.email %>
 <% owner.tickets.forEach((ticket) => { -%>
-  * <%= jira.baseUrl + '/browse/' + ticket.key %>
+  * <%= jira.baseUrl + '/browse/' + ticket.key %> - <%= ticket.fields.status.name %>
 <% }); -%>
 <% }); -%>
 <% if (!tickets.pendingByOwner.length) {%> ~ None. Yay! ~ <% } %>
@@ -103,7 +103,7 @@ Pending Approval
 <% tickets.pendingByOwner.forEach((owner) => { %>
 <%= (owner.slackUser) ? '@'+owner.slackUser.name : owner.email %>
 <% owner.tickets.forEach((ticket) => { -%>
-  * <%= jira.baseUrl + '/browse/' + ticket.key %>
+  * <%= jira.baseUrl + '/browse/' + ticket.key %> - <%= ticket.fields.status.name %>
 <% }); -%>
 <% }); -%>
 <% if (!tickets.pendingByOwner.length) {%> ~ None. Yay! ~ <% } %>
@@ -130,6 +130,10 @@ function nonRTInformation(ticket) {
 }
 
 function shouldExcludeTicketFromList(ticket) { 
+  if(ticket.fields.status.name == "Deployed" || ticket.fields.status.name == "Completed") {
+    return true;
+  }
+  
   if(ticket.fields.project.key === "TIER2") {
     let stateFieldValue = ticket.fields.customfield_10048 || [];
 
