@@ -56,8 +56,12 @@ RT Jira Tickets Summary
 
 The following Tier 2 Tickets are in the RT but are missing values for "RT State"
 ---------------------
-<% tickets.noRT.forEach((ticket) => { %>
-  * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>
+<% tickets.noRT.forEach((ticket, index) => { %>
+  *<%= index+1 %>. Dev Card: [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>)*
+
+  **<%= ticket.fields.summary %>**
+
+  Description: <%= ticket.fields.customfield_10047 %>
 <% }); -%>
 <% if (!tickets.noRT.length) {%> ~ None ~ <% } %>
 
