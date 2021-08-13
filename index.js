@@ -27,7 +27,7 @@ sourceControl: {
       to: core.getInput("source_control_range_to"),
       from: core.getInput("source_control_range_from"),
       symmetric: false // if we don't make it non-symmetric, then we'll get changes in master that aren't in the release branch
-    },    
+    },
     gitHubToken: core.getInput("github_token"),
     repoName: core.getInput('repo_name')
   },
@@ -45,14 +45,14 @@ Release version: <%= jira.releaseVersions[0].name -%>
 
 RT Jira Tickets Summary
 ---------------------
-<% tickets.all.forEach((ticket, index) => { %>
+<% tickets.allForRT.forEach((ticket, index) => { %>
   *<%= index+1 %>. Dev Card: [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>)*
 
   **<%= ticket.fields.summary %>**
 
   Description: <%= ticket.fields.customfield_10047 %>
 <% }); -%>
-<% if (!tickets.all.length) {%> ~ None ~ <% } %>
+<% if (!tickets.allForRT.length) {%> ~ None ~ <% } %>
 
 The following Tier 2 Tickets are in the RT but are missing values for "RT State"
 ---------------------
@@ -92,11 +92,11 @@ Release version: <%= jira.releaseVersions[0].name -%>
 QA Tickets Summary
 ---------------------
 
-<% tickets.all.forEach((ticket) => { %>
+<% tickets.allForQA.forEach((ticket) => { %>
   * [<%= ticket.fields.issuetype.name %>] - [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>) <%= ticket.fields.summary -%>\n
   ** QA Notes: <%=ticket.fields.customfield_10079 %>
 <% }); -%>
-<% if (!tickets.all.length) {%> ~ None ~ <% } %>
+<% if (!tickets.allForQA.length) {%> ~ None ~ <% } %>
 
 Pending Approval
 ---------------------
@@ -118,28 +118,32 @@ Other Commits
 
 // identify TIER 2 tickets that don't have a value for "RT State"
 function nonRTInformation(ticket) {
-  if(ticket.fields.project.key === "TIER2") {
-    let stateFieldValue = ticket.fields.customfield_10048 || [];
+  let stateFieldValue = ticket.fields.customfield_10048 || [];
 
-    if (stateFieldValue.length <= 0) {
-      return true;
-    }
+  if (stateFieldValue.length <= 0) {
+    return true;
   }
 
   return false;
 }
 
-function shouldExcludeTicketFromList(ticket) { 
+function shouldExcludeTicketFromList(ticket, isQA) { 
   if(ticket.fields.status.name == "Deployed" || ticket.fields.status.name == "Completed") {
     return true;
   }
-  
-  if(ticket.fields.project.key === "TIER2") {
-    let stateFieldValue = ticket.fields.customfield_10048 || [];
 
-    if (stateFieldValue.length == 1) {
-      return stateFieldValue[0].value == 'No RT'
-    }
+  if (isQA) {
+    return false;
+  }
+
+  let stateFieldValue = ticket.fields.customfield_10048 || [];
+
+  if (stateFieldValue.length == 0){
+    return true;
+  }
+
+  if (stateFieldValue.length == 1) {
+    return stateFieldValue[0].value == 'No RT'
   }
 
   return false;
@@ -242,8 +246,12 @@ async function main() {
       return nonRTInformation(ticket);
     });
 
-    data.tickets.all = data.tickets.all.filter((ticket) => {
-      return !shouldExcludeTicketFromList(ticket);
+    data.tickets.allForRT = data.tickets.all.filter((ticket) => {
+      return !shouldExcludeTicketFromList(ticket, false);
+    });
+
+    data.tickets.allForQA = data.tickets.all.filter((ticket) => {
+      return !shouldExcludeTicketFromList(ticket, true);
     });
 
     const entitles = new Entities.AllHtmlEntities();
