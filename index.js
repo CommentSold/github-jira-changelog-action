@@ -132,7 +132,7 @@ function nonRTInformation(ticket) {
 }
 
 function shouldExcludeTicketFromList(ticket, isQA) { 
-  if(ticket.fields.status.name == "Deployed" || ticket.fields.status.name == "Completed") {
+  if(ticket.fields.status.name == "Deployed" || ticket.fields.status.name == "Completed" || ticket.fields.status.name == "Done. Follow up?" || ticket.fields.status.name == "Closed") {
     return true;
   }
 
