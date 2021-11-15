@@ -230,7 +230,7 @@ async function main() {
     console.log(commitLogs);
 
     console.log('Generating release version');
-    const release = jira.releaseVersion;
+    const release = config.jira.releaseVersion;
     console.log(`Release: ${release}`);
 
     console.log('Generating Jira changelog from commit logs');
@@ -243,7 +243,7 @@ async function main() {
 
     data.jira = {
       baseUrl: config.jira.baseUrl,
-      releaseVersions: jira.releaseVersion,
+      releaseVersions: jira.releaseVersions,
     };
 
     data.tickets.noRT = data.tickets.all.filter((ticket) => {
