@@ -122,7 +122,7 @@ Other Commits
 <% if (!commits.noTickets.length) {%> ~ None ~ <% } %>
 `;
 
-// identify TIER 2 tickets that don't have a value for "RT State"
+// identify tickets that don't have a value for "RT State"
 function nonRTInformation(ticket) {
   let stateFieldValue = ticket.fields.customfield_10048 || [];
 
@@ -131,6 +131,13 @@ function nonRTInformation(ticket) {
   }
 
   return false;
+}
+
+// which issues are in the release?
+function inRelease(ticket, version) {
+  const versionStrings = ticket.fields.fixVersions.map(v => v.name);
+
+  return versionStrings.includes(version);
 }
 
 function shouldExcludeTicketFromList(ticket, isQA) { 
@@ -253,13 +260,11 @@ async function main() {
       releaseVersions: jira.releaseVersions,
     };
 
-
-
-    // if(config.jira.generateNotesOnly == "true") {
-    //   data.tickets.all = data.tickets.all.filter((ticket) => {
-    //     return inRelease(ticket, config.jira.releaseVersion);
-    //   });
-    // }
+    if(config.jira.generateNotesOnly == "true") {
+      data.tickets.all = data.tickets.all.filter((ticket) => {
+        return inRelease(ticket, config.jira.releaseVersion);
+      });
+    }
 
     data.tickets.noRT = data.tickets.all.filter((ticket) => {
       return nonRTInformation(ticket);
