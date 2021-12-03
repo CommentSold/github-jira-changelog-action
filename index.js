@@ -258,6 +258,12 @@ async function main() {
     console.log('Changelog entry:');
     console.log(changelog);
 
+    if(config.jira.generateNotesOnly == "true") {
+      data.tickets.all = data.tickets.all.filter((ticket) => {
+        return inRelease(ticket, config.jira.releaseVersion);
+      });
+    }
+
     console.log('Generating changelog message');
     const data = await transformCommitLogs(config, changelog);
 
@@ -265,12 +271,6 @@ async function main() {
       baseUrl: config.jira.baseUrl,
       releaseVersions: jira.releaseVersions,
     };
-
-    if(config.jira.generateNotesOnly == "true") {
-      data.tickets.all = data.tickets.all.filter((ticket) => {
-        return inRelease(ticket, config.jira.releaseVersion);
-      });
-    }
 
     data.tickets.noRT = data.tickets.all.filter((ticket) => {
       return nonRTInformation(ticket);
