@@ -231,12 +231,12 @@ async function main() {
     const commitLogs = await source.getCommitLogs('./', range, config.sourceControl.gitHubToken, config.sourceControl.repoName);
     console.log(commitLogs);
 
+    let release = "";
     if(config.generateNotesOnly == "true") {
       console.log('Not generating release version -- generate notes only mode');
-      const release = "";
     } else {
       console.log('Generating release version');
-      const release = config.jira.releaseVersion;
+      release = config.jira.releaseVersion;
       console.log(`Release: ${release}`);
     }
 
