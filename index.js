@@ -232,7 +232,7 @@ async function main() {
     console.log(commitLogs);
 
     let release = "";
-    if(config.generateNotesOnly == "true") {
+    if(config.jira.generateNotesOnly == "true") {
       console.log('Not generating release version -- generate notes only mode');
     } else {
       console.log('Generating release version');
@@ -255,7 +255,7 @@ async function main() {
 
 
 
-    // if(config.generateNotesOnly == "true") {
+    // if(config.jira.generateNotesOnly == "true") {
     //   data.tickets.all = data.tickets.all.filter((ticket) => {
     //     return inRelease(ticket, config.jira.releaseVersion);
     //   });
