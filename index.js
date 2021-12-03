@@ -137,6 +137,10 @@ function nonRTInformation(ticket) {
 function inRelease(ticket, version) {
   const versionStrings = ticket.fields.fixVersions.map(v => v.name);
 
+  console.log("Checkin ticket: " + ticket.key);
+  console.log("Version: ", versionStrings);
+  console.log(versionStrings.includes(version));
+
   return versionStrings.includes(version);
 }
 
@@ -239,6 +243,7 @@ async function main() {
     console.log(commitLogs);
 
     let release = "";
+    console.log("Notes: ", config.jira.generateNotesOnly);
     if(config.jira.generateNotesOnly == "true") {
       console.log('Not generating release version -- generate notes only mode');
     } else {
@@ -248,6 +253,7 @@ async function main() {
     }
 
     console.log('Generating Jira changelog from commit logs');
+    console.log("Release: ", release);
     const changelog = await jira.generate(commitLogs, release);
     console.log('Changelog entry:');
     console.log(changelog);
