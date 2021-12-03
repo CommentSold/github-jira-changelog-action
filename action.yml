@@ -40,6 +40,10 @@ inputs:
         description: 'Full name of the github repository'
         default: ''
         required: true 
+    generate_notes_only:
+        description: 'Should tickets be updated to associate the release version, or just generate updated notes?'
+        default: 'false'
+        required: false
 outputs:
     changelog_message:
         description: 'Generated changelog entry'

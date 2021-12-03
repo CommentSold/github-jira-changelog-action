@@ -17,10 +17,11 @@ const config = {
   },
   baseUrl: core.getInput('jira_base_url'),
   ticketIDPattern: RegExpFromString(core.getInput('jira_ticket_id_pattern')),
-  approvalStatus: ['Current Release Candidate', 'Ready to Deploy', "Ready to QA", "In QA", "QA Feedback"],
+  approvalStatus: ['Current Release Candidate', 'Ready to Deploy', "Ready for QA", "In QA", "QA Feedback"],
   excludeIssueTypes: ['Sub-task'],
   includeIssueTypes: [],
   releaseVersion: core.getInput('release_version'),
+  generateNotesOnly: core.getInput('generate_notes_only')
 },
 sourceControl: {
   defaultRange: {
@@ -43,6 +44,18 @@ Release version: <%= jira.releaseVersions[0].name -%>
 <% }); -%>
 <% } %>
 
+The following Tickets are in the RT but are missing values for "RT State"
+---------------------
+<% tickets.noRT.forEach((ticket, index) => { %>
+  *<%= index+1 %>. Dev Card: [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>)*
+
+  **<%= ticket.fields.summary %>**
+
+  Description: <%= ticket.fields.customfield_10047 %>
+<% }); -%>
+<% if (!tickets.noRT.length) {%> ~ None ~ <% } %>
+
+
 RT Jira Tickets Summary
 ---------------------
 <% tickets.allForRT.forEach((ticket, index) => { %>
@@ -53,17 +66,6 @@ RT Jira Tickets Summary
   Description: <%= ticket.fields.customfield_10047 %>
 <% }); -%>
 <% if (!tickets.allForRT.length) {%> ~ None ~ <% } %>
-
-The following Tier 2 Tickets are in the RT but are missing values for "RT State"
----------------------
-<% tickets.noRT.forEach((ticket, index) => { %>
-  *<%= index+1 %>. Dev Card: [<%= ticket.key %>](<%= jira.baseUrl + '/browse/' + ticket.key %>)*
-
-  **<%= ticket.fields.summary %>**
-
-  Description: <%= ticket.fields.customfield_10047 %>
-<% }); -%>
-<% if (!tickets.noRT.length) {%> ~ None ~ <% } %>
 
 Pending Approval
 ---------------------
@@ -229,9 +231,14 @@ async function main() {
     const commitLogs = await source.getCommitLogs('./', range, config.sourceControl.gitHubToken, config.sourceControl.repoName);
     console.log(commitLogs);
 
-    console.log('Generating release version');
-    const release = config.jira.releaseVersion;
-    console.log(`Release: ${release}`);
+    if(config.generateNotesOnly == "true") {
+      console.log('Not generating release version -- generate notes only mode');
+      const release = "";
+    } else {
+      console.log('Generating release version');
+      const release = config.jira.releaseVersion;
+      console.log(`Release: ${release}`);
+    }
 
     console.log('Generating Jira changelog from commit logs');
     const changelog = await jira.generate(commitLogs, release);
@@ -245,6 +252,14 @@ async function main() {
       baseUrl: config.jira.baseUrl,
       releaseVersions: jira.releaseVersions,
     };
+
+
+
+    // if(config.generateNotesOnly == "true") {
+    //   data.tickets.all = data.tickets.all.filter((ticket) => {
+    //     return inRelease(ticket, config.jira.releaseVersion);
+    //   });
+    // }
 
     data.tickets.noRT = data.tickets.all.filter((ticket) => {
       return nonRTInformation(ticket);
@@ -268,8 +283,8 @@ async function main() {
     console.log('QA log message entry:');
     console.log(entitles.decode(qaLogMessage));
 
-    // console.log('Jira tickets: ');
-    // console.log(data.tickets.all);
+    console.log('Jira tickets: ');
+    console.log(data.tickets.all);
 
     core.setOutput('changelog_message', changelogMessage);
     core.setOutput('qanotes_message', qaLogMessage);
