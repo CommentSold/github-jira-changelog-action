@@ -286,6 +286,15 @@ async function main() {
     console.log('Jira tickets: ');
     console.log(data.tickets.all);
 
+    data.tickets.all.forEach((ticket) => {
+      console.log(ticket.key);
+      console.log("Fix Versions");
+
+      ticket.fields.fixVersions.forEach((fixVersion) => {
+        console.log(fixVersion);
+      });
+    });
+
     core.setOutput('changelog_message', changelogMessage);
     core.setOutput('qanotes_message', qaLogMessage);
 
