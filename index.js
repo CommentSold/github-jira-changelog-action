@@ -139,6 +139,13 @@ function inRelease(ticket, version) {
 
   console.log("Checkin ticket: " + ticket.key);
   console.log("Version: ", versionStrings);
+
+  const projectString = ticket.key.split("-")[0];
+
+  if ( projectString == "TIER2" ) {
+    return true;
+  }
+
   console.log(versionStrings.includes(version));
 
   return versionStrings.includes(version);
