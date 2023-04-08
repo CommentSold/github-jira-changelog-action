@@ -152,7 +152,7 @@ function inRelease(ticket, version) {
 }
 
 function shouldExcludeTicketFromList(ticket, isQA) { 
-  if(ticket.fields.status.name == "Deployed" || ticket.fields.status.name == "Completed" || ticket.fields.status.name == "Done. Follow up?" || ticket.fields.status.name == "Closed") {
+  if(ticket.fields.status.name == "Deployed" || ticket.fields.status.name == "Completed" || ticket.fields.status.name == "Done. Follow up?" || ticket.fields.status.name == "Closed" || ticket.fields.status.name == 'Needs Feature Testing' || ticket.fields.status.name == 'Ready to Enable' || ticket.fields.status.name == 'Deployed and Eanbled') {
     return true;
   }
 
