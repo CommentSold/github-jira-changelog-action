@@ -17,7 +17,7 @@ const config = {
   },
   baseUrl: core.getInput('jira_base_url'),
   ticketIDPattern: RegExpFromString(core.getInput('jira_ticket_id_pattern')),
-  approvalStatus: ['Current Release Candidate', 'Ready to Deploy', "Ready for QA", "In QA", "QA Feedback"],
+  approvalStatus: ['Current Release Candidate', 'Ready to Deploy', "Ready for QA", "In QA", "QA Feedback", "Ready to RElease"],
   excludeIssueTypes: ['Sub-task'],
   includeIssueTypes: [],
   releaseVersion: core.getInput('release_version'),
